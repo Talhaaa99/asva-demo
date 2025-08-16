@@ -7,11 +7,7 @@ import { useSwap } from "@/hooks/useSwap";
 import { TOKENS } from "@/lib/contracts";
 import { useChainId } from "wagmi";
 import { formatAddress } from "@/lib/utils";
-
-const TOKEN_OPTIONS = [
-  { symbol: "ETH", name: "Ether" },
-  { symbol: "USDC", name: "USD Coin" },
-];
+import { TOKEN_OPTIONS, SLIPPAGE_OPTIONS } from "@/lib/constants";
 
 export function SwapCard() {
   const [tokenIn, setTokenIn] = useState("ETH");
@@ -90,7 +86,7 @@ export function SwapCard() {
                 <select
                   value={tokenIn}
                   onChange={(e) => setTokenIn(e.target.value)}
-                  className="crypto-input w-[80px]"
+                  className="crypto-input w-auto pr-1"
                 >
                   {TOKEN_OPTIONS.map((token) => (
                     <option key={token.symbol} value={token.symbol}>
@@ -129,7 +125,7 @@ export function SwapCard() {
                 <select
                   value={tokenOut}
                   onChange={(e) => setTokenOut(e.target.value)}
-                  className="crypto-input w-[80px]"
+                  className="crypto-input w-auto pr-1"
                 >
                   {TOKEN_OPTIONS.map((token) => (
                     <option key={token.symbol} value={token.symbol}>
@@ -146,7 +142,7 @@ export function SwapCard() {
                 Slippage Tolerance
               </label>
               <div className="flex gap-2">
-                {[0.1, 0.5, 1.0].map((value) => (
+                {SLIPPAGE_OPTIONS.map((value) => (
                   <button
                     key={value}
                     onClick={() => setSlippage(value)}

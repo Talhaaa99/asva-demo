@@ -102,7 +102,7 @@ export function WalletInfo() {
             <div className="flex items-center gap-3 mb-6">
               <Wallet className="h-6 w-6 text-purple-500" />
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Wallet Not Connected
+                Wallet Not Connected
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
@@ -125,19 +125,19 @@ export function WalletInfo() {
           <div className="flex items-center gap-3 mb-8">
             <Wallet className="h-6 w-6 text-purple-500" />
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Wallet Info
+              Wallet Info
             </h3>
           </div>
           <div className="space-y-6">
-          {/* Address */}
+            {/* Address */}
             <div className="space-y-3">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Address
               </label>
               <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                 <span className="text-sm font-mono flex-1 text-gray-900 dark:text-white">
-                {address ? formatAddress(address) : "Unknown"}
-              </span>
+                  {address ? formatAddress(address) : "Unknown"}
+                </span>
                 <button
                   onClick={copyAddress}
                   className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -151,59 +151,59 @@ export function WalletInfo() {
                   <ExternalLink className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
-          </div>
+            </div>
 
-          {/* Network Selector */}
+            {/* Network Selector */}
             <div className="space-y-3">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Network
               </label>
-            <NetworkSelector />
-          </div>
+              <NetworkSelector />
+            </div>
 
-          {/* Balance */}
-          {balance && (
+            {/* Balance */}
+            {balance && (
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Balance
                 </label>
                 <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {formatBalance(balance.value, balance.decimals)}{" "}
-                  {balance.symbol}
-                </span>
+                    {formatBalance(balance.value, balance.decimals)}{" "}
+                    {balance.symbol}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Token Balances */}
+            {/* Token Balances */}
             <div className="space-y-3">
-            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Token Balances
                 </label>
                 <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
                   <RefreshCw className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </button>
-            </div>
+              </div>
               <div className="space-y-3">
-              {Object.entries(tokens)
-                .filter(([symbol]) => symbol !== "ETH") // Remove ETH from token balances
-                .map(([symbol, address]) => {
-                  const metadata =
-                    TOKEN_METADATA[symbol as keyof typeof TOKEN_METADATA];
+                {Object.entries(tokens)
+                  .filter(([symbol]) => symbol !== "ETH" && symbol !== "WETH") // Remove ETH and WETH from token balances
+                  .map(([symbol, address]) => {
+                    const metadata =
+                      TOKEN_METADATA[symbol as keyof typeof TOKEN_METADATA];
 
-                  return (
-                    <TokenBalanceItem
-                      key={symbol}
-                      symbol={symbol}
-                      address={address}
-                      metadata={metadata}
-                    />
-                  );
-                })}
+                    return (
+                      <TokenBalanceItem
+                        key={symbol}
+                        symbol={symbol}
+                        address={address}
+                        metadata={metadata}
+                      />
+                    );
+                  })}
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>

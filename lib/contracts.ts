@@ -1,4 +1,5 @@
 import { base, baseGoerli, mainnet, sepolia } from "wagmi/chains";
+import { TokenMetadata } from "./types";
 
 // Uniswap V2 Router addresses
 export const UNISWAP_V2_ROUTER_ADDRESSES = {
@@ -30,7 +31,7 @@ export const TOKENS = {
 } as const;
 
 // Token metadata for better display
-export const TOKEN_METADATA = {
+export const TOKEN_METADATA: Record<string, TokenMetadata> = {
   ETH: {
     name: "Ether",
     symbol: "ETH",

@@ -5,38 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccount, useChainId } from "wagmi";
-import { base, baseGoerli, mainnet, sepolia } from "wagmi/chains";
-
-const NETWORKS = [
-  {
-    id: mainnet.id,
-    name: "Ethereum",
-    chain: mainnet,
-    icon: "🔵",
-    description: "Ethereum Mainnet",
-  },
-  {
-    id: base.id,
-    name: "Base",
-    chain: base,
-    icon: "🔷",
-    description: "Base Mainnet",
-  },
-  {
-    id: sepolia.id,
-    name: "Sepolia",
-    chain: sepolia,
-    icon: "🧪",
-    description: "Ethereum Testnet",
-  },
-  {
-    id: baseGoerli.id,
-    name: "Base Goerli",
-    chain: baseGoerli,
-    icon: "🔷",
-    description: "Base Testnet",
-  },
-];
+import { NETWORKS } from "@/lib/constants";
 
 export function NetworkSelector() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +37,7 @@ export function NetworkSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isPending}
-        className="w-full justify-between text-sm p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex justify-between text-sm p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">{currentNetwork.icon}</span>

@@ -5,7 +5,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { parseUnits, formatBalance } from "@/lib/utils";
+import { parseUnits } from "@/lib/utils";
 import {
   UNISWAP_V2_ROUTER_ABI,
   UNISWAP_V2_ROUTER_ADDRESSES,
@@ -20,19 +20,13 @@ import {
   calculateSwapRateFromExchangeRates,
 } from "@/lib/prices";
 import { usePrices } from "./usePrices";
-
-export interface SwapParams {
-  tokenIn: string;
-  tokenOut: string;
-  amountIn: string;
-  slippage: number;
-}
-
-export interface SwapEstimate {
-  amountOut: string;
-  priceImpact: number;
-  gasEstimate: bigint;
-}
+import { SwapParams, SwapEstimate } from "@/lib/types";
+import {
+  FALLBACK_RATES,
+  GAS_ESTIMATES,
+  TRANSACTION_TIMEOUTS,
+} from "@/lib/constants";
+import { SwapService } from "@/lib/services/swapService";
 
 export function useSwap() {
   const [swapParams, setSwapParams] = useState<SwapParams | null>(null);
@@ -115,13 +109,10 @@ export function useSwap() {
           );
         } else {
           // Fallback to hardcoded rates for demo
-          const hardcodedRates: { [key: string]: number } = {
-            ETH: 3000, // ETH to USD
-            USDC: 1, // USDC to USD
-          };
-
-          const tokenInPrice = hardcodedRates[tokenInSymbol] || 1;
-          const tokenOutPrice = hardcodedRates[tokenOutSymbol] || 1;
+          const tokenInPrice =
+            FALLBACK_RATES[tokenInSymbol as keyof typeof FALLBACK_RATES] || 1;
+          const tokenOutPrice =
+            FALLBACK_RATES[tokenOutSymbol as keyof typeof FALLBACK_RATES] || 1;
 
           const amountInUSD = parseFloat(params.amountIn) * tokenInPrice;
           const amountOut = amountInUSD / tokenOutPrice;
@@ -134,7 +125,7 @@ export function useSwap() {
 
         // Calculate price impact (simplified)
         const priceImpact = 0.5; // This would be calculated based on reserves
-        const gasEstimate = BigInt(150000); // Estimated gas
+        const gasEstimate = BigInt(GAS_ESTIMATES.swap); // Estimated gas
 
         setEstimate({
           amountOut: amountOutFormatted,
@@ -201,7 +192,8 @@ export function useSwap() {
         swapParams.tokenIn as `0x${string}`,
         swapParams.tokenOut as `0x${string}`,
       ];
-      const deadline = Math.floor(Date.now() / 1000) + 1200; // 20 minutes
+      const deadline =
+        Math.floor(Date.now() / 1000) + TRANSACTION_TIMEOUTS.deadline;
 
       // Determine the correct swap function based on token types
       const isETHIn = tokenInSymbol === "ETH";
@@ -220,32 +212,18 @@ export function useSwap() {
         return; // Exit here, the actual swap will be triggered after approval
       }
 
-      // For Base network, ETH swaps need to go through WETH
-      let actualPath: `0x${string}`[];
-      if (chainId === 8453) {
-        // Base mainnet
-        if (isETHIn && !isETHOut) {
-          // ETH to USDC: ETH -> WETH -> USDC
-          actualPath = [
-            "0x4200000000000000000000000000000000000006" as `0x${string}`, // WETH
-            swapParams.tokenOut as `0x${string}`,
-          ];
-        } else if (!isETHIn && isETHOut) {
-          // USDC to ETH: USDC -> WETH -> ETH
-          actualPath = [
-            swapParams.tokenIn as `0x${string}`,
-            "0x4200000000000000000000000000000000000006" as `0x${string}`, // WETH
-          ];
-        } else {
-          actualPath = path;
-        }
-      } else {
-        actualPath = path;
-      }
+      // Use SwapService to get the correct path
+      const actualPath = SwapService.getSwapPath(
+        swapParams.tokenIn,
+        swapParams.tokenOut,
+        isETHIn,
+        isETHOut,
+        chainId
+      );
 
       if (isETHIn && !isETHOut) {
         // ETH to Token
-        writeContract({
+        (writeContract as any)({
           address: routerAddress as `0x${string}`,
           abi: UNISWAP_V2_ROUTER_ABI,
           functionName: "swapExactETHForTokens",
@@ -254,7 +232,7 @@ export function useSwap() {
         });
       } else if (!isETHIn && isETHOut) {
         // Token to ETH
-        writeContract({
+        (writeContract as any)({
           address: routerAddress as `0x${string}`,
           abi: UNISWAP_V2_ROUTER_ABI,
           functionName: "swapExactTokensForETH",
@@ -268,7 +246,7 @@ export function useSwap() {
         });
       } else {
         // Token to Token
-        writeContract({
+        (writeContract as any)({
           address: routerAddress as `0x${string}`,
           abi: UNISWAP_V2_ROUTER_ABI,
           functionName: "swapExactTokensForTokens",
