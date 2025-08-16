@@ -3,16 +3,12 @@
 import { wagmiAdapter, projectId } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
-import { base, baseGoerli } from "@reown/appkit/networks";
+import { base, baseGoerli, mainnet, sepolia } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 
 // Set up queryClient
 const queryClient = new QueryClient();
-
-if (!projectId) {
-  throw new Error("Project ID is not defined");
-}
 
 // Set up metadata
 const metadata = {
@@ -25,8 +21,8 @@ const metadata = {
 // Create the modal
 const modal = createAppKit({
   adapters: [wagmiAdapter],
-  projectId,
-  networks: [base, baseGoerli],
+  projectId: projectId!,
+  networks: [mainnet, base, sepolia, baseGoerli],
   defaultNetwork: base,
   metadata: metadata,
   features: {
