@@ -6,9 +6,11 @@ import { formatAddress } from "@/lib/utils";
 import { SwapCard } from "./SwapCard";
 import { WalletInfo } from "./WalletInfo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useWallet } from "@/hooks/useWallet";
 
 export function Dashboard() {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { isWalletConnected } = useWallet();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
@@ -39,7 +41,7 @@ export function Dashboard() {
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               className="flex items-center gap-2"
             >
-              {address && (
+              {isWalletConnected() && address && (
                 <div className="hidden sm:block px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-mono text-gray-700 dark:text-gray-300">
                   {formatAddress(address)}
                 </div>
@@ -73,8 +75,6 @@ export function Dashboard() {
             <WalletInfo />
           </motion.div>
         </div>
-
-
       </main>
 
       {/* Footer */}

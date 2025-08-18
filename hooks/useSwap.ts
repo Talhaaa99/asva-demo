@@ -113,7 +113,8 @@ export function useSwap() {
             const tokenInPrice =
               FALLBACK_RATES[tokenInSymbol as keyof typeof FALLBACK_RATES] || 1;
             const tokenOutPrice =
-              FALLBACK_RATES[tokenOutSymbol as keyof typeof FALLBACK_RATES] || 1;
+              FALLBACK_RATES[tokenOutSymbol as keyof typeof FALLBACK_RATES] ||
+              1;
 
             const amountInUSD = parseFloat(params.amountIn) * tokenInPrice;
             const amountOut = amountInUSD / tokenOutPrice;

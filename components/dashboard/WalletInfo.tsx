@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Wallet, Copy, ExternalLink, RefreshCw } from "lucide-react";
+import { Wallet, Copy, ExternalLink, RefreshCw, LogOut } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAccount, useBalance, useChainId, useToken } from "wagmi";
 import { formatAddress, formatBalance } from "@/lib/utils";
 import { TOKENS, TOKEN_METADATA } from "@/lib/contracts";
 import { NetworkSelector } from "./NetworkSelector";
+import { useWallet } from "@/hooks/useWallet";
 
 // Separate component to avoid conditional hooks
 function TokenBalanceItem({
@@ -53,44 +54,22 @@ function TokenBalanceItem({
 }
 
 export function WalletInfo() {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { data: balance } = useBalance({
+  const {
     address,
-  });
+    isConnected,
+    connectionStatus,
+    chainId,
+    ethBalance,
+    formattedEthBalance,
+    copyAddress,
+    openExplorer,
+    disconnectWallet,
+    isWalletConnected,
+  } = useWallet();
 
   const tokens = TOKENS[chainId as keyof typeof TOKENS] || TOKENS[8453];
 
-  const copyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-    }
-  };
-
-  const openExplorer = () => {
-    if (address) {
-      let explorerUrl = "";
-      switch (chainId) {
-        case 1: // Ethereum mainnet
-          explorerUrl = `https://etherscan.io/address/${address}`;
-          break;
-        case 8453: // Base mainnet
-          explorerUrl = `https://basescan.org/address/${address}`;
-          break;
-        case 11155111: // Sepolia
-          explorerUrl = `https://sepolia.etherscan.io/address/${address}`;
-          break;
-        case 84531: // Base Goerli
-          explorerUrl = `https://goerli.basescan.org/address/${address}`;
-          break;
-        default:
-          explorerUrl = `https://basescan.org/address/${address}`;
-      }
-      window.open(explorerUrl, "_blank");
-    }
-  };
-
-  if (!isConnected) {
+  if (!isWalletConnected()) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -122,11 +101,30 @@ export function WalletInfo() {
     >
       <div className="crypto-card">
         <div className="crypto-card-inner">
-          <div className="flex items-center gap-3 mb-8">
-            <Wallet className="h-6 w-6 text-purple-500" />
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Wallet Info
-            </h3>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Wallet className="h-6 w-6 text-purple-500" />
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Wallet Info
+              </h3>
+            </div>
+            {/* Connection Status Indicator */}
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  connectionStatus === "connected"
+                    ? "bg-green-500"
+                    : connectionStatus === "connecting"
+                    ? "bg-yellow-500"
+                    : connectionStatus === "error"
+                    ? "bg-red-500"
+                    : "bg-gray-400"
+                }`}
+              />
+              <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                {connectionStatus}
+              </span>
+            </div>
           </div>
           <div className="space-y-6">
             {/* Address */}
@@ -162,15 +160,14 @@ export function WalletInfo() {
             </div>
 
             {/* Balance */}
-            {balance && (
+            {ethBalance && (
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Balance
                 </label>
                 <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {formatBalance(balance.value, balance.decimals)}{" "}
-                    {balance.symbol}
+                    {formattedEthBalance} ETH
                   </span>
                 </div>
               </div>
@@ -203,6 +200,17 @@ export function WalletInfo() {
                     );
                   })}
               </div>
+            </div>
+
+            {/* Disconnect Button */}
+            <div className="pt-4">
+              <button
+                onClick={disconnectWallet}
+                className="w-full flex items-center justify-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="text-sm font-medium">Disconnect Wallet</span>
+              </button>
             </div>
           </div>
         </div>
