@@ -69,7 +69,10 @@ export function WalletInfo() {
 
   const tokens = TOKENS[chainId as keyof typeof TOKENS] || TOKENS[8453];
 
-  if (!isWalletConnected()) {
+  // Check if wallet is connected using the hook's method
+  const walletConnected = isWalletConnected();
+
+  if (!walletConnected) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -85,7 +88,8 @@ export function WalletInfo() {
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Please connect your wallet to start swapping tokens.
+              Please connect your wallet using the button in the navbar to start
+              swapping tokens on Base network.
             </p>
           </div>
         </div>

@@ -10,54 +10,27 @@ export function useWallet() {
   const chainId = useChainId();
   const { disconnect } = useDisconnect();
 
-  // Local state to track connection status
+  // Simplified connection status tracking
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "disconnected" | "connecting" | "error"
   >("disconnected");
 
-  // Monitor connection status with better error handling
+  // Monitor connection status
   useEffect(() => {
-    try {
-      console.log("Connection status update:", {
-        isConnecting,
-        isConnected,
-        address,
-        connectionStatus,
-      });
+    console.log("Wallet state update:", {
+      isConnecting,
+      isConnected,
+      address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null,
+    });
 
-      if (isConnecting) {
-        setConnectionStatus("connecting");
-      } else if (isConnected && address) {
-        setConnectionStatus("connected");
-      } else {
-        setConnectionStatus("disconnected");
-      }
-    } catch (error) {
-      console.warn("Wallet connection status error:", error);
-      setConnectionStatus("error");
+    if (isConnecting) {
+      setConnectionStatus("connecting");
+    } else if (isConnected && address) {
+      setConnectionStatus("connected");
+    } else {
+      setConnectionStatus("disconnected");
     }
   }, [isConnected, isConnecting, address]);
-
-  // Additional check for wallet availability
-  useEffect(() => {
-    const checkWalletAvailability = () => {
-      try {
-        // Check if any wallet is available
-        const hasMetaMask =
-          typeof window !== "undefined" && (window as any).ethereum;
-        const hasWalletConnect =
-          typeof window !== "undefined" && (window as any).WalletConnect;
-
-        if (!hasMetaMask && !hasWalletConnect) {
-          console.warn("No wallet extensions detected");
-        }
-      } catch (error) {
-        console.warn("Wallet availability check failed:", error);
-      }
-    };
-
-    checkWalletAvailability();
-  }, []);
 
   // Get native ETH balance
   const { data: ethBalance } = useBalance({
@@ -111,34 +84,30 @@ export function useWallet() {
   const disconnectWallet = useCallback(() => {
     try {
       console.log("Disconnecting wallet...");
-      disconnect();
-      setConnectionStatus("disconnected");
 
-      // Force clear any cached wallet data
+      // Clear wagmi storage first
       if (typeof window !== "undefined") {
-        // Clear any localStorage wallet data
         localStorage.removeItem("wagmi.connected");
         localStorage.removeItem("wagmi.account");
         localStorage.removeItem("wagmi.chainId");
-
-        // Clear any sessionStorage wallet data
         sessionStorage.removeItem("wagmi.connected");
         sessionStorage.removeItem("wagmi.account");
         sessionStorage.removeItem("wagmi.chainId");
       }
 
-      // Small delay to ensure UI updates
-      setTimeout(() => {
-        console.log("Wallet disconnected successfully");
-        ToastService.show({
-          title: "Wallet Disconnected",
-          description: "Your wallet has been successfully disconnected.",
-          type: "success",
-        });
-      }, 100);
+      // Set disconnected state immediately
+      setConnectionStatus("disconnected");
+
+      // Call wagmi disconnect
+      disconnect();
+
+      ToastService.show({
+        title: "Wallet Disconnected",
+        description: "Your wallet has been successfully disconnected.",
+        type: "success",
+      });
     } catch (error) {
       console.error("Error disconnecting wallet:", error);
-      // Force set disconnected state even if disconnect fails
       setConnectionStatus("disconnected");
       ToastService.show({
         title: "Disconnect Error",
@@ -148,25 +117,25 @@ export function useWallet() {
     }
   }, [disconnect]);
 
-  // Check if wallet is truly connected with fallback
+  // Simple and reliable wallet connection check
   const isWalletConnected = useCallback(() => {
-    // If we're explicitly disconnected, return false
-    if (connectionStatus === "disconnected") {
-      return false;
-    }
+    console.log("isWalletConnected check:", {
+      address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null,
+      isConnected,
+      connectionStatus,
+      hasAddress: !!address,
+    });
 
-    // Primary check: wagmi connection state
-    if (isConnected && !!address) {
+    // If we have an address, consider it connected regardless of wagmi state
+    // This handles cases where wagmi state is inconsistent
+    if (address) {
+      console.log("Wallet connected: has address");
       return true;
     }
 
-    // Fallback check: if we have an address but wagmi thinks we're not connected
-    // This can happen when there are connector initialization issues
-    if (!!address && connectionStatus === "connected") {
-      return true;
-    }
-
-    return false;
+    // Fallback to wagmi's isConnected state
+    console.log("Wallet connected: using wagmi state", isConnected);
+    return isConnected;
   }, [isConnected, address, connectionStatus]);
 
   // Format ETH balance for display

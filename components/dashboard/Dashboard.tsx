@@ -9,8 +9,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useWallet } from "@/hooks/useWallet";
 
 export function Dashboard() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { isWalletConnected } = useWallet();
+
+  // Use the same reliable connection check
+  const walletConnected = isWalletConnected();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
@@ -41,13 +44,13 @@ export function Dashboard() {
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               className="flex items-center gap-2"
             >
-              {isWalletConnected() && address && (
+              {walletConnected ? (
                 <div className="hidden sm:block px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-mono text-gray-700 dark:text-gray-300">
-                  {formatAddress(address)}
+                  {formatAddress(address || "")}
                 </div>
+              ) : (
+                <appkit-button />
               )}
-              <ThemeToggle />
-              <appkit-button />
             </motion.div>
           </div>
         </div>
