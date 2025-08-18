@@ -91,33 +91,44 @@ export function useSwap() {
         // Use real-time prices for estimation
         let amountOutString: string;
 
-        if (exchangeRates) {
-          // Use exchange rates if available (more accurate)
-          amountOutString = calculateSwapRateFromExchangeRates(
-            tokenInSymbol,
-            tokenOutSymbol,
-            params.amountIn,
-            exchangeRates
-          );
-        } else if (prices && Object.keys(prices).length > 0) {
-          // Fallback to simple price calculation
-          amountOutString = calculateSwapRate(
-            tokenInSymbol,
-            tokenOutSymbol,
-            params.amountIn,
-            prices
-          );
-        } else {
-          // Fallback to hardcoded rates for demo
-          const tokenInPrice =
-            FALLBACK_RATES[tokenInSymbol as keyof typeof FALLBACK_RATES] || 1;
-          const tokenOutPrice =
-            FALLBACK_RATES[tokenOutSymbol as keyof typeof FALLBACK_RATES] || 1;
+        try {
+          if (exchangeRates && Object.keys(exchangeRates.rates).length > 0) {
+            // Use exchange rates if available (most accurate)
+            amountOutString = calculateSwapRateFromExchangeRates(
+              tokenInSymbol,
+              tokenOutSymbol,
+              params.amountIn,
+              exchangeRates
+            );
+          } else if (prices && Object.keys(prices).length > 0) {
+            // Fallback to simple price calculation
+            amountOutString = calculateSwapRate(
+              tokenInSymbol,
+              tokenOutSymbol,
+              params.amountIn,
+              prices
+            );
+          } else {
+            // Fallback to hardcoded rates for demo
+            const tokenInPrice =
+              FALLBACK_RATES[tokenInSymbol as keyof typeof FALLBACK_RATES] || 1;
+            const tokenOutPrice =
+              FALLBACK_RATES[tokenOutSymbol as keyof typeof FALLBACK_RATES] || 1;
 
-          const amountInUSD = parseFloat(params.amountIn) * tokenInPrice;
-          const amountOut = amountInUSD / tokenOutPrice;
+            const amountInUSD = parseFloat(params.amountIn) * tokenInPrice;
+            const amountOut = amountInUSD / tokenOutPrice;
 
-          amountOutString = amountOut.toFixed(6);
+            amountOutString = amountOut.toFixed(6);
+          }
+
+          // Validate the result
+          if (!amountOutString || parseFloat(amountOutString) <= 0) {
+            throw new Error("Invalid estimation result");
+          }
+        } catch (error) {
+          console.error("Estimation error:", error);
+          // Use a simple 1:1 ratio as last resort
+          amountOutString = params.amountIn;
         }
 
         // Convert the string result to the proper format for display
@@ -126,6 +137,15 @@ export function useSwap() {
         // Calculate price impact (simplified)
         const priceImpact = 0.5; // This would be calculated based on reserves
         const gasEstimate = BigInt(GAS_ESTIMATES.swap); // Estimated gas
+
+        console.log("Estimation result:", {
+          tokenIn: tokenInSymbol,
+          tokenOut: tokenOutSymbol,
+          amountIn: params.amountIn,
+          amountOut: amountOutFormatted,
+          hasExchangeRates: !!exchangeRates,
+          hasPrices: !!prices,
+        });
 
         setEstimate({
           amountOut: amountOutFormatted,

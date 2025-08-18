@@ -9,7 +9,7 @@ export const COINGECKO_IDS = {
 
 // Hardcoded fallback rates (for demo purposes)
 export const FALLBACK_RATES = {
-  ETH: 3000, // ETH to USD
+  ETH: 4500, // ETH to USD (updated)
   USDC: 1, // USDC to USD
 } as const;
 
